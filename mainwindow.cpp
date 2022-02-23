@@ -128,20 +128,22 @@ int MainWindow::autonomouslaser(LaserMeasurement &laserData)
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
-    QPainter painter(this);
-    painter.setBrush(Qt::black);
-    QPen pero;
-    pero.setStyle(Qt::SolidLine);
-    pero.setWidth(3);
-    pero.setColor(Qt::green);
-    QRect rect(20,120,700,500);
-    painter.drawRect(rect);
+    // QPainter painter(this);
+    // painter.setBrush(Qt::black);
+    // QPen pero;
+    // pero.setStyle(Qt::SolidLine);
+    // pero.setWidth(3);
+    // pero.setColor(Qt::green);
+    //QRect rect(20,120,700,500);
+    //painter.drawRect(rect);
     if(updateCameraPicture==1 && showCamera==true)
     {
         updateCameraPicture=0;
         QImage imgIn= QImage((uchar*) robotPicture.data, robotPicture.cols, robotPicture.rows, robotPicture.step, QImage::Format_BGR888);
-        painter.drawImage(20, 120, imgIn);
-      //  cv::imshow("client",robotPicture);
+        //painter.drawImage(20, 120, imgIn);
+        //cv::imshow("client",robotPicture);
+        ui->mywidget->paintCamera(imgIn);
+        ui->mywidget->update();
     }
 
     if(updateLaserPicture==1 && showLidar==true)
@@ -149,6 +151,10 @@ void MainWindow::paintEvent(QPaintEvent *event)
         /// ****************
         ///you can change pen or pen color here if you want
         /// ****************
+        ///
+        ui->mywidget->paintLidar(paintLaserData);
+        ui->mywidget->update();
+        /*
         painter.setPen(pero);
         for(int k=0;k<paintLaserData.numberOfScans;k++)
         {
@@ -157,10 +163,16 @@ void MainWindow::paintEvent(QPaintEvent *event)
             int yp=620-(310+dist*cos((360.0-paintLaserData.Data[k].scanAngle)*3.14159/180.0));
             if(xp<721 && xp>19 && yp<621 && yp>121)
                 painter.drawEllipse(QPoint(xp, yp),2,2);
-        }
+        }*/
+
+
     }
     if(updateSkeletonPicture==1 && showSkeleton==true)
     {
+
+        ui->mywidget->paintSkeleton(kostricka);
+        ui->mywidget->update();
+        /*
         painter.setPen(Qt::red);
         for(int i=0;i<75;i++)
         {
@@ -168,7 +180,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
             int yp=120+ 500 *kostricka.joints[i].y;
 
             painter.drawEllipse(QPoint(xp, yp),2,2);
-        }
+        }*/
     }
 
 }

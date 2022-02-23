@@ -76,10 +76,12 @@ LIBS += -lWinmm
 }
 SOURCES += main.cpp\
         mainwindow.cpp \
+    robotScreenWidget.cpp \
     rplidar.cpp \
     CKobuki.cpp
 
 HEADERS  += mainwindow.h \
+    robotScreenWidget.h \
     rplidar.h \
     CKobuki.h
 
