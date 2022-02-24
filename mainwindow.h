@@ -132,6 +132,14 @@ typedef struct
 
 typedef struct
 {
+    float realDistanceZ[1000];
+    int xObstacles[1000];
+    int yObstacles[1000];
+    double scanAngleRight[1000];
+}procesedLidarData;
+
+typedef struct
+{
      std::chrono::steady_clock::time_point timestamp;
     int command;
     double speed;
@@ -185,7 +193,7 @@ public:
     double robotY;
     double robotFi;
     int globalcommand;
-
+    procesedLidarData procesLidarData;
 
     int EncMax=65536;
     double PolohaX;
@@ -344,6 +352,7 @@ private:
     Ui::MainWindow *ui;
     void paintEvent(QPaintEvent *event);// Q_DECL_OVERRIDE;
     void keyPressEvent(QKeyEvent* event);
+    procesedLidarData preprocesLidarData(LaserMeasurement laserData);
 };
 
 #endif // MAINWINDOW_H

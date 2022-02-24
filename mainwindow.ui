@@ -15,14 +15,20 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_2">
-    <item row="0" column="3">
-     <widget class="QLabel" name="label">
-      <property name="text">
-       <string>X:</string>
+    <item row="4" column="8">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
-     </widget>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
     </item>
-    <item row="1" column="3">
+    <item row="1" column="5">
      <widget class="QLabel" name="label_2">
       <property name="text">
        <string>Y:</string>
@@ -38,19 +44,6 @@
        </size>
       </property>
      </widget>
-    </item>
-    <item row="0" column="6">
-     <spacer name="horizontalSpacer_3">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
     </item>
     <item row="4" column="1">
      <layout class="QGridLayout" name="gridLayout">
@@ -91,7 +84,20 @@
       </item>
      </layout>
     </item>
-    <item row="0" column="4" rowspan="5" colspan="2">
+    <item row="0" column="8">
+     <spacer name="horizontalSpacer_3">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="0" column="6" rowspan="5" colspan="2">
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <widget class="QLineEdit" name="lineEdit">
@@ -167,25 +173,19 @@
       </item>
      </layout>
     </item>
+    <item row="0" column="5">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>X:</string>
+      </property>
+     </widget>
+    </item>
     <item row="2" column="3">
      <widget class="QLabel" name="label_3">
       <property name="text">
        <string>Fi:</string>
       </property>
      </widget>
-    </item>
-    <item row="4" column="6">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
     </item>
    </layout>
   </widget>

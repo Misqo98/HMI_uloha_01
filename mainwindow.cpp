@@ -154,33 +154,13 @@ void MainWindow::paintEvent(QPaintEvent *event)
         ///
         ui->mywidget->paintLidar(paintLaserData);
         ui->mywidget->update();
-        /*
-        painter.setPen(pero);
-        for(int k=0;k<paintLaserData.numberOfScans;k++)
-        {
-            int dist=paintLaserData.Data[k].scanDistance/15;
-            int xp=720-(360+dist*sin((360.0-paintLaserData.Data[k].scanAngle)*3.14159/180.0));
-            int yp=620-(310+dist*cos((360.0-paintLaserData.Data[k].scanAngle)*3.14159/180.0));
-            if(xp<721 && xp>19 && yp<621 && yp>121)
-                painter.drawEllipse(QPoint(xp, yp),2,2);
-        }*/
-
-
     }
     if(updateSkeletonPicture==1 && showSkeleton==true)
     {
 
         ui->mywidget->paintSkeleton(kostricka);
         ui->mywidget->update();
-        /*
-        painter.setPen(Qt::red);
-        for(int i=0;i<75;i++)
-        {
-            int xp=720-720 * kostricka.joints[i].x;
-            int yp=120+ 500 *kostricka.joints[i].y;
 
-            painter.drawEllipse(QPoint(xp, yp),2,2);
-        }*/
     }
 
 }
