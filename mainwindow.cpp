@@ -123,7 +123,19 @@ int MainWindow::autonomouslaser(LaserMeasurement &laserData)
 /// pozor na synchronizaciu, odporucam akonahle chcete robit nieco s obrazkom urobit si jeho lokalnu kopiu
 /// cv::Mat frameBuf; robotPicture.copyTo(frameBuf);
 
-
+procesedLidarData MainWindow::preprocesLidarData(LaserMeasurement laserData){
+    procesedLidarData result;
+    int dist =0;
+    for(int k=0;k<laserData.numberOfScans;k++)
+    {
+        dist=laserData.Data[k].scanDistance/15;
+        result.xObstacles[k]=720-(360+dist*sin((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
+        result.yObstacles[k]=620-(310+dist*cos((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
+        result.scanAngleRight[k] = 360.0-laserData.Data[k].scanAngle;
+        result.realDistanceZ[k] = dist * cos(result.scanAngleRight[k]*3.14159/180.0);
+    }
+    return result;
+}
 //sposob kreslenia na obrazovku, tento event sa spusti vzdy ked sa bud zavola funkcia update() alebo operacny system si vyziada prekreslenie okna
 
 void MainWindow::paintEvent(QPaintEvent *event)
