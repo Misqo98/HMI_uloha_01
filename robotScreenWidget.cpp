@@ -25,17 +25,53 @@ void robotScreenWidget::paintEvent(QPaintEvent * /* event */)
     pero.setWidth(3);
     pero.setColor(Qt::green);
 
+    QPen warningPen;
+    warningPen.setStyle(Qt::SolidLine);
+    warningPen.setWidth(4);
+    warningPen.setColor(Qt::red);
+
     painter.drawImage(0, 0, ImgIn);
 
 
-    for(int k=0;k<paintLaserDataWidget.numberOfScans;k++)
+    painter.setPen(Qt::green);
+    /*painter.drawRect(QRect(0, 0, 741, 10));
+    painter.drawRect(QRect(0, 500, 741, 10));
+
+    painter.drawRect(QRect(0, 0, 10, 506));
+    painter.drawRect(QRect(731, 0, 10, 506));*/
+
+    for(int k=0;k<paintLaserDataWidget.length;k++)
     {
-        int dist=paintLaserDataWidget.Data[k].scanDistance/15;
-        int xp=720-(360+dist*sin((360.0-paintLaserDataWidget.Data[k].scanAngle)*3.14159/180.0));
-        int yp=620-(310+dist*cos((360.0-paintLaserDataWidget.Data[k].scanAngle)*3.14159/180.0));
-        if(xp<721 && xp>19 && yp<621 && yp>121)
-            painter.drawEllipse(QPoint(xp, yp),2,2);
+        if(paintLaserDataWidget.xObstacles[k]<721 && paintLaserDataWidget.xObstacles[k]>19 && paintLaserDataWidget.yObstacles[k]<621 && paintLaserDataWidget.yObstacles[k]>121){
+
+            if(paintLaserDataWidget.realDistanceD[k]< 30){
+                painter.setPen(Qt::red);
+            }
+            else{
+                painter.setPen(Qt::green);
+            }
+            painter.drawEllipse(QPoint(paintLaserDataWidget.xObstacles[k], paintLaserDataWidget.yObstacles[k]),2,2);
+        }
+        if(paintLaserDataWidget.realDistanceD[k]< 30){
+            if((paintLaserDataWidget.scanAngleRight[k] >= 315 && paintLaserDataWidget.scanAngleRight[k] <= 360) || (paintLaserDataWidget.scanAngleRight[k] >= 0 && paintLaserDataWidget.scanAngleRight[k] <= 45)){
+                //printf("Hit angle = %f", paintLaserDataWidget.scanAngleRight[k]);
+                painter.drawRect(QRect(0, 0, 741, 10));
+            }
+            if((paintLaserDataWidget.scanAngleRight[k] >= 135 && paintLaserDataWidget.scanAngleRight[k] <= 225)){
+                //printf("Hit angle = %f", paintLaserDataWidget.scanAngleRight[k]);
+                painter.drawRect(QRect(0, 500, 741, 10));// zadok
+            }
+            if((paintLaserDataWidget.scanAngleRight[k] > 45 && paintLaserDataWidget.scanAngleRight[k] < 135)){
+                //printf("Hit angle = %f", paintLaserDataWidget.scanAngleRight[k]);
+               painter.drawRect(QRect(0, 0, 10, 506));// Lavobok
+            }
+            if((paintLaserDataWidget.scanAngleRight[k] > 225 && paintLaserDataWidget.scanAngleRight[k] < 315)){
+                //printf("Hit angle = %f", paintLaserDataWidget.scanAngleRight[k]);
+               painter.drawRect(QRect(731, 0, 10, 506));// Pravobok
+            }
+        }
     }
+
     painter.setPen(Qt::red);
     for(int i=0;i<75;i++)
     {
@@ -59,7 +95,7 @@ void robotScreenWidget::draw(QPainter *painter)
 void robotScreenWidget::paintCamera(QImage imgIn){
     ImgIn =imgIn;
 }
-void robotScreenWidget::paintLidar(LaserMeasurement paintLaserData){
+void robotScreenWidget::paintLidar(procesedLidarData paintLaserData){
     paintLaserDataWidget = paintLaserData;
 
 }

@@ -125,14 +125,16 @@ int MainWindow::autonomouslaser(LaserMeasurement &laserData)
 
 procesedLidarData MainWindow::preprocesLidarData(LaserMeasurement laserData){
     procesedLidarData result;
-    int dist =0;
+
+    result.length = laserData.numberOfScans;
     for(int k=0;k<laserData.numberOfScans;k++)
     {
-        dist=laserData.Data[k].scanDistance/15;
-        result.xObstacles[k]=720-(360+dist*sin((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
-        result.yObstacles[k]=620-(310+dist*cos((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
+        result.realDistanceD[k]=laserData.Data[k].scanDistance/15;
+
+        result.xObstacles[k]=720-(360+result.realDistanceD[k]*sin((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
+        result.yObstacles[k]=620-(310+result.realDistanceD[k]*cos((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
         result.scanAngleRight[k] = 360.0-laserData.Data[k].scanAngle;
-        result.realDistanceZ[k] = dist * cos(result.scanAngleRight[k]*3.14159/180.0);
+        result.realDistanceZ[k] = result.realDistanceD[k] * cos(result.scanAngleRight[k]*3.14159/180.0);
     }
     return result;
 }
@@ -164,7 +166,10 @@ void MainWindow::paintEvent(QPaintEvent *event)
         ///you can change pen or pen color here if you want
         /// ****************
         ///
-        ui->mywidget->paintLidar(paintLaserData);
+        //chcem poslat spracované dáta
+        procesedLidarData lidarData;
+        lidarData = preprocesLidarData(paintLaserData);
+        ui->mywidget->paintLidar(lidarData);
         ui->mywidget->update();
     }
     if(updateSkeletonPicture==1 && showSkeleton==true)

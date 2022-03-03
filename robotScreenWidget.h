@@ -19,7 +19,7 @@ public:
     ~robotScreenWidget();
     void draw(QPainter *painter);
     void paintCamera(QImage imgIn);
-    void paintLidar(LaserMeasurement paintLaserDat);
+    void paintLidar(procesedLidarData paintLaserDat);
     void paintSkeleton(skeleton skeletonIn);
 protected:
     void paintEvent(QPaintEvent *event);
@@ -27,8 +27,9 @@ protected:
 private:
     QImage ImgIn;
     QPushButton *btn1, *btn2;
-    LaserMeasurement paintLaserDataWidget;
+    procesedLidarData paintLaserDataWidget;
     skeleton paintSkeletonDataWidget;
+
 
 };
 

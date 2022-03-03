@@ -133,9 +133,11 @@ typedef struct
 typedef struct
 {
     float realDistanceZ[1000];
+    float realDistanceD[1000];
     int xObstacles[1000];
     int yObstacles[1000];
     double scanAngleRight[1000];
+    int length;
 }procesedLidarData;
 
 typedef struct
