@@ -30,8 +30,9 @@ void robotScreenWidget::paintEvent(QPaintEvent * /* event */)
     warningPen.setWidth(4);
     warningPen.setColor(Qt::red);
 
-    painter.drawImage(0, 0, ImgIn);
-
+    painter.drawImage(0, 0, ImgIn.scaled(this->width(), this->height()));
+    printf("Vyska: %d \n", this->height());
+    printf("Sirka: %d \n", this->width());
 
     painter.setPen(Qt::green);
     /*painter.drawRect(QRect(0, 0, 741, 10));
@@ -39,7 +40,7 @@ void robotScreenWidget::paintEvent(QPaintEvent * /* event */)
 
     painter.drawRect(QRect(0, 0, 10, 506));
     painter.drawRect(QRect(731, 0, 10, 506));*/
-
+    painter.setBrush(Qt::red);
     for(int k=0;k<paintLaserDataWidget.length;k++)
     {
         if(paintLaserDataWidget.xObstacles[k]<721 && paintLaserDataWidget.xObstacles[k]>19 && paintLaserDataWidget.yObstacles[k]<621 && paintLaserDataWidget.yObstacles[k]>121){
@@ -52,6 +53,7 @@ void robotScreenWidget::paintEvent(QPaintEvent * /* event */)
             }
             painter.drawEllipse(QPoint(paintLaserDataWidget.xObstacles[k], paintLaserDataWidget.yObstacles[k]),2,2);
         }
+
         if(paintLaserDataWidget.realDistanceD[k]< 30){
             if((paintLaserDataWidget.scanAngleRight[k] >= 315 && paintLaserDataWidget.scanAngleRight[k] <= 360) || (paintLaserDataWidget.scanAngleRight[k] >= 0 && paintLaserDataWidget.scanAngleRight[k] <= 45)){
                 //printf("Hit angle = %f", paintLaserDataWidget.scanAngleRight[k]);

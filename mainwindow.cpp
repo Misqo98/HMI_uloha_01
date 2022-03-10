@@ -142,14 +142,16 @@ procesedLidarData MainWindow::preprocesLidarData(LaserMeasurement laserData){
 
 void MainWindow::paintEvent(QPaintEvent *event)
 {
-    // QPainter painter(this);
-    // painter.setBrush(Qt::black);
-    // QPen pero;
-    // pero.setStyle(Qt::SolidLine);
-    // pero.setWidth(3);
-    // pero.setColor(Qt::green);
-    //QRect rect(20,120,700,500);
+     QPainter painter(this);
+     painter.setBrush(Qt::black);
+     QPen pero;
+     pero.setStyle(Qt::SolidLine);
+     pero.setWidth(3);
+     pero.setColor(Qt::green);
+     QRect rect(20,120,700,500);
     //painter.drawRect(rect);
+
+
     if(updateCameraPicture==1 && showCamera==true)
     {
         updateCameraPicture=0;
@@ -166,9 +168,26 @@ void MainWindow::paintEvent(QPaintEvent *event)
         ///you can change pen or pen color here if you want
         /// ****************
         ///
+
+
         //chcem poslat spracované dáta
         procesedLidarData lidarData;
         lidarData = preprocesLidarData(paintLaserData);
+
+        for(int k=0;k<lidarData.length;k++)
+        {
+            if(lidarData.xObstacles[k]<721 && lidarData.xObstacles[k]>19 && lidarData.yObstacles[k]<621 && lidarData.yObstacles[k]>121){
+
+                if(lidarData.realDistanceD[k]< 30){
+                    painter.setPen(Qt::red);
+                }
+                else{
+                    painter.setPen(Qt::green);
+                }
+                painter.drawEllipse(QPoint(lidarData.xObstacles[k], lidarData.yObstacles[k]),2,2);
+            }
+          }
+
         ui->mywidget->paintLidar(lidarData);
         ui->mywidget->update();
     }
@@ -179,6 +198,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
         ui->mywidget->update();
 
     }
+
 
 }
 
@@ -246,63 +266,6 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 MainWindow::~MainWindow()
 {
     stopall=0;
@@ -311,11 +274,6 @@ MainWindow::~MainWindow()
     skeletonthreadHandle.join();
     delete ui;
 }
-
-
-
-
-
 
 
 
@@ -760,19 +718,6 @@ void MainWindow::on_pushButton_9_clicked()//left
     AutonomousCommandQuerry.push_back(help);
 }
 
-void MainWindow::on_pushButton_12_clicked()
-{
-    zX=ui->lineEdit_4->text().toDouble();
-    zY=ui->lineEdit_5->text().toDouble();
-    toleranciaUhla=2;
-    naviguj=true;
-}
-
-void MainWindow::on_pushButton_13_clicked()
-{
-    ui->lineEdit_4->setText("stlacil sa gombik");
-}
-
 
 void MainWindow::skeletonprocess()
 {
@@ -838,31 +783,13 @@ void MainWindow::skeletonprocess()
     std::cout<<"koniec thread"<<std::endl;
 }
 
-void MainWindow::on_checkBox_2_clicked(bool checked)
-{
-    showLidar=checked;
-}
 
-
-void MainWindow::on_checkBox_3_clicked(bool checked)
-{
-    showCamera=checked;
-}
-
-
-void MainWindow::on_checkBox_4_clicked(bool checked)
-{
-    showSkeleton=checked;
-}
-
-
-void MainWindow::on_checkBox_clicked(bool checked)
-{
-    applyDelay=checked;
-}
 
 void MainWindow::imageViewer()
 {
+    showLidar = 1;
+    showCamera = 1;
+    showSkeleton = 1;
     cv::VideoCapture cap;
     cap.open("http://127.0.0.1:8889/stream.mjpg");
     cv::Mat frameBuf;
@@ -916,3 +843,6 @@ void MainWindow::imageViewer()
         QCoreApplication::processEvents();
     }
 }
+
+
+
