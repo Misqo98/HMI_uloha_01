@@ -148,9 +148,25 @@ void MainWindow::paintEvent(QPaintEvent *event)
      pero.setStyle(Qt::SolidLine);
      pero.setWidth(3);
      pero.setColor(Qt::green);
-     QRect rect(20,120,700,500);
-    //painter.drawRect(rect);
-
+     painter.setPen(pero);
+    //Initialize frame geometrics
+        //skeleton
+     skeletonFrame.high =  ui->frame_skeleton->geometry().height();
+     skeletonFrame.width = ui->frame_skeleton->geometry().width();
+     skeletonFrame.x = ui->frame_skeleton->geometry().x();
+     skeletonFrame.y = ui->frame_skeleton->geometry().y();
+     skeletonFrame.centerX =  ui->frame_skeleton->geometry().center().x();
+     skeletonFrame.centerY = ui->frame_skeleton->geometry().center().y();
+        //lidar
+     lidarFrame.high =  ui->frame_lidar->geometry().height();
+     lidarFrame.width = ui->frame_lidar->geometry().width();
+     lidarFrame.x = ui->frame_lidar->geometry().x();
+     lidarFrame.y = ui->frame_lidar->geometry().y();
+     lidarFrame.centerX =  ui->frame_lidar->geometry().center().x();
+     lidarFrame.centerY = ui->frame_lidar->geometry().center().y();
+    //______________________________
+    QRect rectLidar(1, 1, 149, 111) ;
+    rectLidar = ui->frame_lidar->geometry();
 
     if(updateCameraPicture==1 && showCamera==true)
     {
@@ -173,10 +189,15 @@ void MainWindow::paintEvent(QPaintEvent *event)
         //chcem poslat spracované dáta
         procesedLidarData lidarData;
         lidarData = preprocesLidarData(paintLaserData);
+        // kresli lidar do frame
+
+        painter.setPen(pero);
+
 
         for(int k=0;k<lidarData.length;k++)
         {
             if(lidarData.xObstacles[k]<721 && lidarData.xObstacles[k]>19 && lidarData.yObstacles[k]<621 && lidarData.yObstacles[k]>121){
+                    double dist =lidarData.realDistanceD[k]/35.0;
 
                 if(lidarData.realDistanceD[k]< 30){
                     painter.setPen(Qt::red);
@@ -184,7 +205,10 @@ void MainWindow::paintEvent(QPaintEvent *event)
                 else{
                     painter.setPen(Qt::green);
                 }
-                painter.drawEllipse(QPoint(lidarData.xObstacles[k], lidarData.yObstacles[k]),2,2);
+                    int xPaint = lidarFrame.width -(lidarFrame.width /2 + dist * sin(((2*PI) - (lidarData.scanAngleRight[k]*PI/180.0)))) + rectLidar.topLeft().x();
+                    int yPaint = lidarFrame.high -(lidarFrame.high /2 + dist * sin(((2*PI) - (lidarData.scanAngleRight[k]*PI/180.0)))) + rectLidar.topLeft().y();
+                   // painter.drawEllipse(QPoint(xPaint, yPaint),2,2);
+
             }
           }
 

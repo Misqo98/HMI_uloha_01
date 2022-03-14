@@ -142,6 +142,17 @@ typedef struct
 
 typedef struct
 {
+    double x;
+    double y;
+    double width;
+    double high;
+    double centerX;
+    double centerY;
+}frameGeometric;
+
+
+typedef struct
+{
      std::chrono::steady_clock::time_point timestamp;
     int command;
     double speed;
@@ -211,7 +222,9 @@ public:
     double deltaVzdialenostL;
     double deltaVzdialenostR;
     bool prvyStart;
-double gyro;
+    double gyro;
+    frameGeometric skeletonFrame;
+    frameGeometric lidarFrame;
 
 std::string ipaddress;
     std::vector<RobotCommand> commandQuery;
