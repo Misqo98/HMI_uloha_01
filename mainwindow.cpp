@@ -207,7 +207,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
                 }
                     int xPaint = lidarFrame.width -(lidarFrame.width /2 + dist * sin(((2*PI) - (lidarData.scanAngleRight[k]*PI/180.0)))) + rectLidar.topLeft().x();
                     int yPaint = lidarFrame.high -(lidarFrame.high /2 + dist * sin(((2*PI) - (lidarData.scanAngleRight[k]*PI/180.0)))) + rectLidar.topLeft().y();
-                   // painter.drawEllipse(QPoint(xPaint, yPaint),2,2);
+                    painter.drawEllipse(QPoint(xPaint, yPaint),2,2);
 
             }
           }
