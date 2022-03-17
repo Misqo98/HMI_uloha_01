@@ -129,7 +129,7 @@ procesedLidarData MainWindow::preprocesLidarData(LaserMeasurement laserData){
     result.length = laserData.numberOfScans;
     for(int k=0;k<laserData.numberOfScans;k++)
     {
-        result.realDistanceD[k]=laserData.Data[k].scanDistance/15;
+        result.realDistanceD[k]=laserData.Data[k].scanDistance/15.0;
 
         result.xObstacles[k]=720-(360+result.realDistanceD[k]*sin((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
         result.yObstacles[k]=620-(310+result.realDistanceD[k]*cos((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
@@ -140,6 +140,21 @@ procesedLidarData MainWindow::preprocesLidarData(LaserMeasurement laserData){
 }
 //sposob kreslenia na obrazovku, tento event sa spusti vzdy ked sa bud zavola funkcia update() alebo operacny system si vyziada prekreslenie okna
 
+/*cv::Mat MainWindow:: lidarToCam(cv::Mat frameBuf){
+    procesedLidarData lidarData;
+    lidarData = preprocesLidarData(paintLaserData);
+    double z = 0;
+    double x = 0;
+    cv::Size frameBufSize = frameBuf.size();
+    for(int k=0;k<lidarData.length;k++)
+    {
+        xObr =frameBuf.
+        yObr =
+    }
+
+    return 0;
+}*/
+
 void MainWindow::paintEvent(QPaintEvent *event)
 {
      QPainter painter(this);
@@ -147,7 +162,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
      QPen pero;
      pero.setStyle(Qt::SolidLine);
      pero.setWidth(3);
-     pero.setColor(Qt::green);
+     //pero.setColor(Qt::green);
      painter.setPen(pero);
     //Initialize frame geometrics
         //skeleton
@@ -165,8 +180,13 @@ void MainWindow::paintEvent(QPaintEvent *event)
      lidarFrame.centerX =  ui->frame_lidar->geometry().center().x();
      lidarFrame.centerY = ui->frame_lidar->geometry().center().y();
     //______________________________
-    QRect rectLidar(1, 1, 149, 111) ;
+    QRect rectLidar(lidarFrame.x, lidarFrame.y, lidarFrame.width, lidarFrame.high) ;
     rectLidar = ui->frame_lidar->geometry();
+    QRect rectSkeleton(skeletonFrame.x , skeletonFrame.y, skeletonFrame.width, skeletonFrame.high) ;
+    rectLidar = ui->frame_lidar->geometry();
+    painter.drawRect(rectLidar);
+    painter.drawRect(rectSkeleton);
+    painter.drawEllipse(QPoint(lidarFrame.centerX, lidarFrame.centerY),2,2);
 
     if(updateCameraPicture==1 && showCamera==true)
     {
@@ -174,7 +194,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
         QImage imgIn= QImage((uchar*) robotPicture.data, robotPicture.cols, robotPicture.rows, robotPicture.step, QImage::Format_BGR888);
         //painter.drawImage(20, 120, imgIn);
         //cv::imshow("client",robotPicture);
-        ui->mywidget->paintCamera(imgIn);
+        ui->mywidget->paintCamera(imgIn, actualPosition.fi);
         ui->mywidget->update();
     }
 
@@ -197,7 +217,7 @@ void MainWindow::paintEvent(QPaintEvent *event)
         for(int k=0;k<lidarData.length;k++)
         {
             if(lidarData.xObstacles[k]<721 && lidarData.xObstacles[k]>19 && lidarData.yObstacles[k]<621 && lidarData.yObstacles[k]>121){
-                    double dist =lidarData.realDistanceD[k]/35.0;
+                    double dist =lidarData.realDistanceD[k]/5.0;
 
                 if(lidarData.realDistanceD[k]< 30){
                     painter.setPen(Qt::red);
@@ -205,9 +225,11 @@ void MainWindow::paintEvent(QPaintEvent *event)
                 else{
                     painter.setPen(Qt::green);
                 }
-                    int xPaint = lidarFrame.width -(lidarFrame.width /2 + dist * sin(((2*PI) - (lidarData.scanAngleRight[k]*PI/180.0)))) + rectLidar.topLeft().x();
-                    int yPaint = lidarFrame.high -(lidarFrame.high /2 + dist * sin(((2*PI) - (lidarData.scanAngleRight[k]*PI/180.0)))) + rectLidar.topLeft().y();
-                    painter.drawEllipse(QPoint(xPaint, yPaint),2,2);
+                    int xPaint = lidarFrame.width -(lidarFrame.width /2 + dist * sin(lidarData.scanAngleRight[k]*PI/180.0)) + rectLidar.topLeft().x();
+                    int yPaint = lidarFrame.high -(lidarFrame.high /2 + dist * cos(lidarData.scanAngleRight[k]*PI/180)) + rectLidar.topLeft().y();
+                    if(rectLidar.contains(xPaint, yPaint)){
+                        painter.drawEllipse(QPoint(xPaint, yPaint),2,2);
+                    }
 
             }
           }
@@ -218,8 +240,20 @@ void MainWindow::paintEvent(QPaintEvent *event)
     if(updateSkeletonPicture==1 && showSkeleton==true)
     {
 
-        ui->mywidget->paintSkeleton(kostricka);
-        ui->mywidget->update();
+        for(int i=0;i<75;i++)
+        {
+
+            int xPaintSkeleton =skeletonFrame.x + skeletonFrame.width * kostricka.joints[i].x;
+            int yPaintSkeleton =skeletonFrame.y + skeletonFrame.high * kostricka.joints[i].y;
+            if(rectSkeleton.contains(xPaintSkeleton, yPaintSkeleton)){
+                        painter.drawEllipse(QPoint(xPaintSkeleton, yPaintSkeleton),2,2);
+                        }
+
+        }
+
+
+        //ui->mywidget->paintSkeleton(kostricka);
+       // ui->mywidget->update();
 
     }
 
@@ -300,6 +334,50 @@ MainWindow::~MainWindow()
 }
 
 
+void MainWindow::localisation(){
+
+    double newEncLeft = sens.EncoderLeft;
+    double newEncRight = sens.EncoderRight;
+    double diameter = robot.getB();
+    double tickToMeter = robot.getTickToMeter();
+
+    if(actualEncLeft - newEncLeft > ENC_POSITIVE_TRESHOLD){
+      lLeft = tickToMeter* (newEncLeft - actualEncLeft + ENC_MAX_VAL);
+    }else if (actualEncLeft - newEncLeft < ENC_NEGATIVE_TRESHOLD){
+        lLeft = tickToMeter* (newEncLeft - actualEncLeft - ENC_MAX_VAL);
+    }else
+        lLeft = tickToMeter* (newEncLeft - actualEncLeft);
+
+    if(actualEncRight - newEncRight > ENC_POSITIVE_TRESHOLD){
+      lRight = tickToMeter* (newEncRight - actualEncRight + ENC_MAX_VAL);
+    }else if (actualEncRight - newEncRight < ENC_NEGATIVE_TRESHOLD){
+        lRight = tickToMeter* (newEncRight - actualEncRight - ENC_MAX_VAL);
+    }else
+        lRight = tickToMeter * (newEncRight - actualEncRight);
+
+    double dAlpha = (lRight - lLeft)*(1.0/diameter);
+    newFi = actualFi + dAlpha;
+
+    if (newFi < - PI){
+            newFi += 2*PI;
+        }
+     else if (newFi > PI){
+            newFi -= 2*PI;
+        }
+
+
+    actualPosition.fi = newFi;
+    if(lRight == lLeft){
+        actualPosition.x = actualPosition.x + lRight*cos(actualFi);
+        actualPosition.y = actualPosition.y + lRight*sin(actualFi);
+    }else{
+        actualPosition.x = actualPosition.x + ((diameter*(lRight + lLeft)/(2.0*(lRight-lLeft)))*(sin(newFi)-sin(actualFi)));
+        actualPosition.y = actualPosition.y - ((diameter*(lRight + lLeft)/(2.0*(lRight-lLeft)))*(cos(newFi)-cos(actualFi)));
+    }
+
+    actualFi = newFi;
+
+}
 
 
 void MainWindow::robotprocess()
@@ -365,10 +443,25 @@ void MainWindow::robotprocess()
         //     memcpy(&sens,buff,sizeof(sens));
         struct timespec t;
         //      clock_gettime(CLOCK_REALTIME,&t);
-
+        actualEncLeft = sens.EncoderLeft;
+        actualEncRight = sens.EncoderRight;
         int returnval=robot.fillData(sens,(unsigned char*)buff);
         if(returnval==0)
         {
+            {
+                if(init){
+                    if(actualEncLeft == 0){
+                        actualEncLeft = sens.EncoderLeft;
+                    }
+                    if(actualEncRight == 0){
+                        actualEncRight = sens.EncoderRight;
+                    }
+                    if(actualFi == 0){
+                        actualFi = sens.GyroAngle/100.0 * PI/180.0;
+                    }
+                    init = false;
+                }
+                localisation();
             //     memcpy(&sens,buff,sizeof(sens));
 
             std::chrono::steady_clock::time_point timestampf=std::chrono::steady_clock::now();
@@ -406,6 +499,7 @@ void MainWindow::robotprocess()
         }
 
 
+    }
     }
 
     std::cout<<"koniec thread2"<<std::endl;
@@ -854,7 +948,7 @@ void MainWindow::imageViewer()
         else
         {
 
-
+            //
            frameBuf.copyTo(robotPicture);
         }
         frameBuf.copyTo(AutonomousrobotPicture);

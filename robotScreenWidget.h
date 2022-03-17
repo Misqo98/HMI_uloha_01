@@ -18,14 +18,19 @@ public:
     robotScreenWidget(QWidget *parent = 0);
     ~robotScreenWidget();
     void draw(QPainter *painter);
-    void paintCamera(QImage imgIn);
+    void paintCamera(QImage imgIn, double angle);
     void paintLidar(procesedLidarData paintLaserDat);
     void paintSkeleton(skeleton skeletonIn);
+    int findBorderPoints(double array);
+    void paintWarnings(int position, int borderPoints);
+    double scaleAngle(double angle);
+
 protected:
     void paintEvent(QPaintEvent *event);
 
 private:
     QImage ImgIn;
+    double robotAngle = 0.0;
     QPushButton *btn1, *btn2;
     procesedLidarData paintLaserDataWidget;
     skeleton paintSkeletonDataWidget;

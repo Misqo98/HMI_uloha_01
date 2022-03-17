@@ -144,6 +144,9 @@ public:
 
     std::vector<unsigned char> setDefaultPID();
 
+    double getTickToMeter();
+    double getB();
+
     int fillData(TKobukiData &output,unsigned char *message)
     {
         return parseKobukiMessage(output,message);
