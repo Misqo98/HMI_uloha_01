@@ -20,6 +20,7 @@
 #include<string.h>
 #include<stdlib.h>
 #include<vector>
+#include <QLabel>
 #include<algorithm>
 #include<chrono>
 #include "CKobuki.h"
@@ -218,6 +219,7 @@ public:
     double robotFi;
     int globalcommand;
     procesedLidarData procesLidarData;
+    cv::Mat robotPicture2;
 
     int EncMax=65536;
     double PolohaX;
@@ -236,8 +238,12 @@ public:
     double gyro;
     frameGeometric skeletonFrame;
     frameGeometric lidarFrame;
-
+    jointnames hand;
     void localisation();
+    void robotRotate(double angl);
+    void robotStop();
+    void robotArcMove(double translation,double radius);
+    void gestureRobotControll();
 
 std::string ipaddress;
     std::vector<RobotCommand> commandQuery;
@@ -291,7 +297,10 @@ std::thread laserthreadHandle;
 void skeletonprocess();
     void localrobot(TKobukiData &sens);
     void autonomousrobot(TKobukiData &sens);
-
+    double scaleAngle(double angle);
+    int leftHandClenched();
+    int rightHandClenched();
+    double euclideanDistance(double x1, double y1, double x2, double y2);
     int locallaser(LaserMeasurement &laserData);
     int autonomouslaser(LaserMeasurement &laserData);
 
@@ -302,7 +311,7 @@ void skeletonprocess();
     int updateSkeletonPicture;
     //veci na broadcast laser
     struct sockaddr_in las_si_me, las_si_other,las_si_posli;
-
+    cv::Mat fusionToCam(cv::Mat camPicture);
     int las_s,  las_recv_len;
 
 

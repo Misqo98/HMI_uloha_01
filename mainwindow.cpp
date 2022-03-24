@@ -129,7 +129,7 @@ procesedLidarData MainWindow::preprocesLidarData(LaserMeasurement laserData){
     result.length = laserData.numberOfScans;
     for(int k=0;k<laserData.numberOfScans;k++)
     {
-        result.realDistanceD[k]=laserData.Data[k].scanDistance/15.0;
+        result.realDistanceD[k]=laserData.Data[k].scanDistance;
 
         result.xObstacles[k]=720-(360+result.realDistanceD[k]*sin((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
         result.yObstacles[k]=620-(310+result.realDistanceD[k]*cos((360.0-laserData.Data[k].scanAngle)*3.14159/180.0));
@@ -155,6 +155,130 @@ procesedLidarData MainWindow::preprocesLidarData(LaserMeasurement laserData){
     return 0;
 }*/
 
+void MainWindow::robotArcMove(double translation,double radius) //stop
+{
+    std::vector<unsigned char> mess=robot.setArcSpeed(translation,radius);
+     if (sendto(rob_s, (char*)mess.data(), sizeof(char)*mess.size(), 0, (struct sockaddr*) &rob_si_posli, rob_slen) == -1)
+        {
+
+     }
+}
+
+void MainWindow::robotStop() //stop
+{
+    std::vector<unsigned char> mess=robot.setTranslationSpeed(0);
+    if (sendto(rob_s, (char*)mess.data(), sizeof(char)*mess.size(), 0, (struct sockaddr*) &rob_si_posli, rob_slen) == -1)
+    {
+
+    }
+}
+void MainWindow::robotRotate(double angl)
+{
+
+    std::vector<unsigned char> mess=robot.setRotationSpeed(angl);
+
+    if (sendto(rob_s, (char*)mess.data(), sizeof(char)*mess.size(), 0, (struct sockaddr*) &rob_si_posli, rob_slen) == -1)
+    {
+
+    }
+}
+
+double MainWindow::scaleAngle(double angle){
+    if(angle < -PI){
+        angle += 2*PI;
+    }else if (angle>PI){
+        angle-=2*PI;
+    }
+    return angle;
+}
+
+int MainWindow:: leftHandClenched(){
+    double indexFinDist = euclideanDistance(kostricka.joints[jointnames::left_index_mcp].x, kostricka.joints[jointnames::left_index_mcp].y,
+            kostricka.joints[jointnames::left_index_tip].x, kostricka.joints[jointnames::left_index_tip].y);
+    double middleFinDist = euclideanDistance(kostricka.joints[jointnames::left_middle_mcp].x, kostricka.joints[jointnames::left_middle_mcp].y,
+            kostricka.joints[jointnames::left_middle_tip].x, kostricka.joints[jointnames::left_middle_tip].y);
+    double ringFinDist = euclideanDistance(kostricka.joints[jointnames::left_ring_mcp].x, kostricka.joints[jointnames::left_ring_mcp].y,
+            kostricka.joints[jointnames::left_ringy_tip].x, kostricka.joints[jointnames::left_ringy_tip].y);
+    double pinkyFinDist = euclideanDistance(kostricka.joints[jointnames::left_pink_mcp].x, kostricka.joints[jointnames::left_pink_mcp].y,
+            kostricka.joints[jointnames::left_pink_tip].x, kostricka.joints[jointnames::left_pink_tip].y);
+    printf("index %f, mid %f, ring %f, pinky %f\n", indexFinDist, middleFinDist, ringFinDist, pinkyFinDist);
+    if(indexFinDist < 0.09 && middleFinDist < 0.09 && ringFinDist < 0.09 && pinkyFinDist < 0.09){
+        return 1;
+    }else{
+       return 0;
+    }
+}
+int MainWindow:: rightHandClenched(){
+    double indexFinDist = euclideanDistance(kostricka.joints[jointnames::right_index_mcp].x, kostricka.joints[jointnames::right_index_mcp].y,
+            kostricka.joints[jointnames::right_index_tip].x, kostricka.joints[jointnames::right_index_tip].y);
+    double middleFinDist = euclideanDistance(kostricka.joints[jointnames::right_middle_mcp].x, kostricka.joints[jointnames::right_middle_mcp].y,
+            kostricka.joints[jointnames::right_middle_tip].x, kostricka.joints[jointnames::right_middle_tip].y);
+    double ringFinDist = euclideanDistance(kostricka.joints[jointnames::right_ring_mcp].x, kostricka.joints[jointnames::right_ring_mcp].y,
+            kostricka.joints[jointnames::right_ringy_tip].x, kostricka.joints[jointnames::right_ringy_tip].y);
+    double pinkyFinDist = euclideanDistance(kostricka.joints[jointnames::right_pink_mcp].x, kostricka.joints[jointnames::right_pink_mcp].y,
+            kostricka.joints[jointnames::right_pink_tip].x, kostricka.joints[jointnames::right_pink_tip].y);
+    printf("index %f, mid %f, ring %f, pinky %f\n", indexFinDist, middleFinDist, ringFinDist, pinkyFinDist);
+    if(indexFinDist < 0.09 && middleFinDist < 0.09 && ringFinDist < 0.09 && pinkyFinDist < 0.09){
+        return 1;
+    }else{
+       return 0;
+    }
+}
+void  MainWindow::gestureRobotControll(){
+    int rightClenched = rightHandClenched();
+    int leftCleched = leftHandClenched();
+    if(rightClenched && leftCleched){
+        //robot start move
+        robotArcMove(100, 32000);
+    }else if(rightClenched && !leftCleched){
+        //robot -R
+        robotArcMove(100, 1);
+    }
+    else if(!rightClenched && leftCleched){
+       //robot R
+        robotArcMove(100, -1);
+    }
+    else{
+        robotStop();
+    }
+}
+double MainWindow::euclideanDistance(double x1, double y1, double x2, double y2){
+   return (double)sqrt(pow(x2-x1,2)+pow(y2-y1,2));
+}
+cv::Mat MainWindow:: fusionToCam(cv::Mat camPicture){
+     procesedLidarData lidarData;
+    lidarData = preprocesLidarData(paintLaserData);
+    for(int k=0;k<lidarData.length;k++)
+    {
+        double dist = lidarData.realDistanceD[k]/10.0;
+         double X = dist * sin(lidarData.scanAngleRight[k]*PI/180);
+         double Z =  dist * cos(lidarData.scanAngleRight[k]*PI/180);
+         int xPicture = (camPicture.cols/2) - ((F_PIXL * X)/Z);
+         int yPicture = (camPicture.rows/2) + ((F_PIXL * 6.0)/Z);
+
+         cv::Scalar distColor;
+         cv::Rect rect;
+
+
+         if((lidarData.scanAngleRight[k] <= 27 && lidarData.scanAngleRight[k] >=0) || (lidarData.scanAngleRight[k] <= 360 && lidarData.scanAngleRight[k] >=360-27)){
+            if(lidarData.realDistanceD[k]<= 1000){
+                double distColorCoef = lidarData.realDistanceD[k]/1000;
+                distColor = cv::Scalar(255, distColorCoef*255, distColorCoef*255);
+                if(xPicture>=0 && yPicture>=0 && xPicture <= camPicture.cols && yPicture <= camPicture.rows){
+                   /* int blue = camPicture.at<cv::Vec3b>(yPicture,xPicture)[0];
+                    int green = camPicture.at<cv::Vec3b>(yPicture,xPicture)[1];
+                    int red = camPicture.at<cv::Vec3b>(yPicture,xPicture)[2];*/
+                    /*cv::Point point(xPicture,yPicture);
+                    cv::circle(camPicture, point, 5, distColor, -1);*/
+                    cv::floodFill(camPicture, cv::Point(xPicture,yPicture), distColor, 0, cv::Scalar(25, 25, 25), cv::Scalar(25, 25, 25));
+                    printf("X: %d, Y: %d \n", xPicture, yPicture);
+
+                }
+            }
+        }
+ }
+        return camPicture;
+}
 void MainWindow::paintEvent(QPaintEvent *event)
 {
      QPainter painter(this);
@@ -184,16 +308,31 @@ void MainWindow::paintEvent(QPaintEvent *event)
     rectLidar = ui->frame_lidar->geometry();
     QRect rectSkeleton(skeletonFrame.x , skeletonFrame.y, skeletonFrame.width, skeletonFrame.high) ;
     rectLidar = ui->frame_lidar->geometry();
+    painter.setBrush(QColor(200, 200, 200));
+    painter.setPen(QColor(200, 200, 200));
     painter.drawRect(rectLidar);
     painter.drawRect(rectSkeleton);
-    painter.drawEllipse(QPoint(lidarFrame.centerX, lidarFrame.centerY),2,2);
 
+    painter.setBrush(Qt::white);
+    painter.setPen(Qt::white);
+    painter.drawEllipse(QPoint(lidarFrame.centerX, lidarFrame.centerY),3,3);
+
+    painter.setBrush(Qt::black);
+    painter.setPen(Qt::black);
+    painter.drawRect(QRect(lidarFrame.centerX, lidarFrame.centerY,1, -2));
     if(updateCameraPicture==1 && showCamera==true)
     {
+        robotPicture=fusionToCam(robotPicture);
+        robotPicture.copyTo(robotPicture2);
         updateCameraPicture=0;
+        //robotPicture = fusionToCam(robotPicture);
         QImage imgIn= QImage((uchar*) robotPicture.data, robotPicture.cols, robotPicture.rows, robotPicture.step, QImage::Format_BGR888);
         //painter.drawImage(20, 120, imgIn);
         //cv::imshow("client",robotPicture);
+        ui->mywidget->paintCamera(imgIn, actualPosition.fi);
+        ui->mywidget->update();
+    }else if (showCamera==true && !robotPicture2.empty()){
+        QImage imgIn= QImage((uchar*) robotPicture2.data, robotPicture2.cols, robotPicture2.rows, robotPicture2.step, QImage::Format_BGR888);
         ui->mywidget->paintCamera(imgIn, actualPosition.fi);
         ui->mywidget->update();
     }
@@ -216,22 +355,24 @@ void MainWindow::paintEvent(QPaintEvent *event)
 
         for(int k=0;k<lidarData.length;k++)
         {
-            if(lidarData.xObstacles[k]<721 && lidarData.xObstacles[k]>19 && lidarData.yObstacles[k]<621 && lidarData.yObstacles[k]>121){
-                    double dist =lidarData.realDistanceD[k]/5.0;
+            //if(lidarData.xObstacles[k]<721 && lidarData.xObstacles[k]>19 && lidarData.yObstacles[k]<621 && lidarData.yObstacles[k]>121){
+                    double dist =lidarData.realDistanceD[k]/30.0;
 
-                if(lidarData.realDistanceD[k]< 30){
-                    painter.setPen(Qt::red);
+                if(lidarData.realDistanceD[k]< 500){
+                    painter.setBrush(Qt::blue);
+                    painter.setPen(Qt::blue);
                 }
                 else{
-                    painter.setPen(Qt::green);
+                    painter.setBrush(Qt::white);
+                    painter.setPen(Qt::white);
                 }
                     int xPaint = lidarFrame.width -(lidarFrame.width /2 + dist * sin(lidarData.scanAngleRight[k]*PI/180.0)) + rectLidar.topLeft().x();
                     int yPaint = lidarFrame.high -(lidarFrame.high /2 + dist * cos(lidarData.scanAngleRight[k]*PI/180)) + rectLidar.topLeft().y();
                     if(rectLidar.contains(xPaint, yPaint)){
-                        painter.drawEllipse(QPoint(xPaint, yPaint),2,2);
+                        painter.drawEllipse(QPoint(xPaint, yPaint),3,3);
                     }
 
-            }
+            //}
           }
 
         ui->mywidget->paintLidar(lidarData);
@@ -462,6 +603,8 @@ void MainWindow::robotprocess()
                     init = false;
                 }
                 localisation();
+                 //rightHandClenched();
+                //gestureRobotControll();
             //     memcpy(&sens,buff,sizeof(sens));
 
             std::chrono::steady_clock::time_point timestampf=std::chrono::steady_clock::now();

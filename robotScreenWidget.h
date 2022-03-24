@@ -22,7 +22,7 @@ public:
     void paintLidar(procesedLidarData paintLaserDat);
     void paintSkeleton(skeleton skeletonIn);
     int findBorderPoints(double array);
-    void paintWarnings(int position, int borderPoints);
+    void paintWarnings(int position, int borderPoints, QPainter &painter);
     double scaleAngle(double angle);
 
 protected:
