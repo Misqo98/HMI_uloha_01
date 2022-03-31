@@ -145,6 +145,13 @@ typedef struct
     int length;
 }procesedLidarData;
 
+typedef struct
+{
+    bool Start = false;
+    bool Stop = true;
+
+}RobotState;
+
 typedef struct{
     double x =0.0;
     double y=0.0;
@@ -244,6 +251,8 @@ public:
     void robotStop();
     void robotArcMove(double translation,double radius);
     void gestureRobotControll();
+    bool thumpGesture(bool right);
+    cv::Mat fusionToCam(cv::Mat camPicture);
 
 std::string ipaddress;
     std::vector<RobotCommand> commandQuery;
@@ -300,18 +309,22 @@ void skeletonprocess();
     double scaleAngle(double angle);
     int leftHandClenched();
     int rightHandClenched();
+    double jointAngle(int joint1, int joint2);
+    double directionAngle(double x1, double y1, double x2, double y2);
     double euclideanDistance(double x1, double y1, double x2, double y2);
     int locallaser(LaserMeasurement &laserData);
     int autonomouslaser(LaserMeasurement &laserData);
+    bool outstretchedFinger(int mcpIndex, int tipIndex);
 
     void paintThisLidar(LaserMeasurement &laserData);
     LaserMeasurement paintLaserData;
     int updateLaserPicture;
     int updateCameraPicture;
     int updateSkeletonPicture;
+    RobotState stateRobot;
     //veci na broadcast laser
     struct sockaddr_in las_si_me, las_si_other,las_si_posli;
-    cv::Mat fusionToCam(cv::Mat camPicture);
+
     int las_s,  las_recv_len;
 
 

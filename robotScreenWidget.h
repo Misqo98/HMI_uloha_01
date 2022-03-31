@@ -18,18 +18,20 @@ public:
     robotScreenWidget(QWidget *parent = 0);
     ~robotScreenWidget();
     void draw(QPainter *painter);
-    void paintCamera(QImage imgIn, double angle);
+    void paintCamera(cv::Mat robotPic);
     void paintLidar(procesedLidarData paintLaserDat);
     void paintSkeleton(skeleton skeletonIn);
     int findBorderPoints(double array);
     void paintWarnings(int position, int borderPoints, QPainter &painter);
     double scaleAngle(double angle);
+    //cv::Mat fusionToCam(cv::Mat camPicture);
 
 protected:
     void paintEvent(QPaintEvent *event);
 
 private:
-    QImage ImgIn;
+    //QImage ImgIn;
+    cv::Mat RobotPic;
     double robotAngle = 0.0;
     QPushButton *btn1, *btn2;
     procesedLidarData paintLaserDataWidget;
