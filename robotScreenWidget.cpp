@@ -67,6 +67,32 @@ int robotScreenWidget::findBorderPoints(double array){
         result = 0;
     return result;
 }
+const QString robotScreenWidget::getGestureString(int command){
+    switch (command) {
+      case 0:
+            return "Stop";
+        break;
+      case 1:
+            return "Forward";
+        break;
+      case 2:
+            return "Left";
+        break;
+      case 3:
+               return "Right";
+        break;
+    case 4:
+             return "Backward";
+      break;
+    case 5:
+             return "Backward - Left";
+      break;
+    case 6:
+             return "Backward - Right";
+      break;
+
+    }
+}
 
 void robotScreenWidget::paintWarnings(int position, int borderPoints, QPainter &painter){
     // position
@@ -80,6 +106,22 @@ void robotScreenWidget::paintWarnings(int position, int borderPoints, QPainter &
     QBrush distanceBrush(colorDistance, styleDistance);
     painter.setBrush(distanceBrush);
     for(int i = 0; i < borderPoints; i++){
+        switch (i) {
+          case 0:
+            colorDistance = QColor(250, 253, 15, 100);
+            break;
+          case 1:
+            colorDistance = QColor(250, 253, 15, 100);
+            break;
+          case 2:
+            colorDistance = QColor(255, 0, 0,100);
+            break;
+          case 3:
+            colorDistance = QColor(255, 0, 0,255);
+            break;
+        }
+        QBrush distanceBrush(colorDistance, styleDistance);
+        painter.setBrush(distanceBrush);
         switch (position) {
           case 0:
             painter.drawRect(QRect(0+10, i*15, this->width()-10, 10));//Front
@@ -120,6 +162,11 @@ void robotScreenWidget::paintEvent(QPaintEvent * /* event */)
     pero.setWidth(3);
     pero.setColor(Qt::green);
 
+    QPixmap handPixMap;
+    handPixMap.load("D:\\gitHub\\HMI\\HMI_uloha_01\\hand.png");
+
+
+
     QPen warningPen;
     warningPen.setStyle(Qt::SolidLine);
     warningPen.setWidth(4);
@@ -131,12 +178,15 @@ void robotScreenWidget::paintEvent(QPaintEvent * /* event */)
     //printf("Sirka: %d \n", this->width());
     double lidarFrameDimension = this->height()*0.33;
     QRect rectLidar(0, 0, lidarFrameDimension, lidarFrameDimension);
+    QRect gestureRect(this->width()-lidarFrameDimension, 0, lidarFrameDimension, lidarFrameDimension);
+    handPixMap = handPixMap.scaled(lidarFrameDimension/5,lidarFrameDimension/5);
 
     //Lidar map Rectangle
     painter.setBrush(QColor(220, 220, 220));
     painter.setPen(QColor(220, 220, 220));
     painter.setOpacity(0.20);
     painter.drawRect(rectLidar);
+    painter.drawRect(gestureRect);
     painter.setOpacity(1);
     // Robot in map
     painter.setBrush(Qt::white);
@@ -147,6 +197,20 @@ void robotScreenWidget::paintEvent(QPaintEvent * /* event */)
     painter.setPen(Qt::black);
     painter.drawRect(QRect(lidarFrameDimension/2, lidarFrameDimension/2,1, -2));
 
+    QFont font=painter.font();
+    font.setPointSize(18);
+    painter.setFont(font);
+    painter.setPen(Qt::white);
+
+
+    if(gestureCommandW.on){
+       painter.drawPixmap(QPoint(gestureRect.center().x()-20,gestureRect.y()+50), handPixMap);
+       painter.drawText(QPoint(gestureRect.x(), gestureRect.y()+30), "Gesture control ON");
+
+    }else{
+        painter.drawText(QPoint(gestureRect.x(), gestureRect.y()+30), "Gesture control OFF");
+    }
+    painter.drawText(gestureRect, Qt::AlignCenter, getGestureString(gestureCommandW.command));
 
     for(int k=0;k<paintLaserDataWidget.length;k++)
     {
@@ -212,5 +276,9 @@ void robotScreenWidget::paintLidar(procesedLidarData paintLaserData){
 }
 void robotScreenWidget::paintSkeleton(skeleton paintSkeleton){
    paintSkeletonDataWidget = paintSkeleton;
+
+}
+void robotScreenWidget::getGesture(GestureComand command){
+    gestureCommandW = command;
 
 }

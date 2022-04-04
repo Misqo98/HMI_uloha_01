@@ -24,6 +24,8 @@ public:
     int findBorderPoints(double array);
     void paintWarnings(int position, int borderPoints, QPainter &painter);
     double scaleAngle(double angle);
+    void getGesture(GestureComand command);
+    const QString getGestureString(int command);
     //cv::Mat fusionToCam(cv::Mat camPicture);
 
 protected:
@@ -34,6 +36,7 @@ private:
     cv::Mat RobotPic;
     double robotAngle = 0.0;
     QPushButton *btn1, *btn2;
+    GestureComand gestureCommandW;
     procesedLidarData paintLaserDataWidget;
     skeleton paintSkeletonDataWidget;
 

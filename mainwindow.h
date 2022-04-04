@@ -169,6 +169,11 @@ typedef struct
     double centerY;
 }frameGeometric;
 
+typedef struct
+{
+    bool on = false;
+    int command = 0;
+}GestureComand;
 
 typedef struct
 {
@@ -239,6 +244,8 @@ public:
     int PomEncoderR;
     int deltaEncL;
     int deltaEncR;
+    GestureComand gestureCommand;
+
     double deltaVzdialenostL;
     double deltaVzdialenostR;
     bool prvyStart;
@@ -387,6 +394,7 @@ private:
     bool showCamera;
     bool showLidar;
     bool showSkeleton;
+    bool totalStop = false;
 
     double actualEncLeft, actualEncRight, actualFi = 0.0;
     double newFi, xPosition, yPosition, lRight, lLeft = 0.0;

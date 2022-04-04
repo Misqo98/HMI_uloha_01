@@ -262,11 +262,11 @@ void  MainWindow::gestureRobotControll(){
     if(stateRobot.Stop && rightPinkStretched && !rightRingStretched && !rightMiddleStretched && !rightIndexStretched){
         stateRobot.Start = true;
         stateRobot.Stop = false;
-        ui->lineEdit_5->setText("Gesture controll ON");
+        gestureCommand.on = true;//start
     }else if(stateRobot.Start && !rightClenched && !leftCleched){
         stateRobot.Stop = true;
         stateRobot.Start = false;
-        ui->lineEdit_5->setText("Gesture controll OFF");
+        gestureCommand.on = false;//stop
 
     }
 
@@ -275,36 +275,39 @@ void  MainWindow::gestureRobotControll(){
                 !rightPinkStretched && !leftRingStretched && !leftMiddleStretched && !leftPinkStretched){
             //robot start move
             robotArcMove(100, 32000);
-            ui->lineEdit_4->setText("Forward");
-        }else if(rightIndexStretched && !rightRingStretched && !rightMiddleStretched && !rightPinkStretched){
+            gestureCommand.command = 1;//forward
+        }else if(rightIndexStretched && !rightRingStretched && !rightMiddleStretched && !rightPinkStretched
+                 && !leftIndexStretched){
             //robot -R
             robotArcMove(100, -150);
-            ui->lineEdit_4->setText("Right");
+            gestureCommand.command = 3;//right
         }
-        else if(leftIndexStretched && !leftRingStretched && !leftMiddleStretched && !leftPinkStretched){
+        else if(leftIndexStretched && !leftRingStretched && !leftMiddleStretched && !leftPinkStretched &&
+                !rightIndexStretched){
            //robot R
             robotArcMove(100, 150);
-            ui->lineEdit_4->setText("Left");
+            gestureCommand.command = 2;//left
         }
         else if(rightIndexStretched && rightMiddleStretched && !rightRingStretched && !rightPinkStretched &&
                 leftIndexStretched && leftMiddleStretched && !rightRingStretched && !rightPinkStretched){
            //robot backwards
                 robotArcMove(-100, 32000);
-                ui->lineEdit_4->setText("Backwards");
+                gestureCommand.command = 4;//Backwards
         }
         else if(rightIndexStretched && rightMiddleStretched && !rightRingStretched && !rightPinkStretched &&
                 !leftIndexStretched && !leftMiddleStretched && !rightRingStretched && !rightPinkStretched){
            //robot backwards
                 robotArcMove(-100, -150);
-                ui->lineEdit_4->setText("Backwards right");
+                gestureCommand.command = 6;//Backwards right
         }
         else if(!rightIndexStretched && !rightMiddleStretched && !rightRingStretched && !rightPinkStretched &&
                 leftIndexStretched && leftMiddleStretched && !rightRingStretched && !rightPinkStretched){
            //robot backwards
                 robotArcMove(-100, 150);
-                ui->lineEdit_4->setText("Backwards left");
+                gestureCommand.command = 5;//Backwards left
         }else{
             robotStop();
+            gestureCommand.command = 0;//Stop
         }
 
 
@@ -338,10 +341,12 @@ void MainWindow::paintEvent(QPaintEvent *event)
         //painter.drawImage(20, 120, imgIn);
         //cv::imshow("client",robotPicture);
         ui->mywidget->paintCamera(robotPicture);
+        ui->mywidget->getGesture(gestureCommand);
         ui->mywidget->update();
     }else if (showCamera==true && !robotPicture2.empty()){
         //QImage imgIn= QImage((uchar*) robotPicture2.data, robotPicture2.cols, robotPicture2.rows, robotPicture2.step, QImage::Format_BGR888);
         ui->mywidget->paintCamera(robotPicture2);
+        ui->mywidget->getGesture(gestureCommand);
         ui->mywidget->update();
     }
 
@@ -352,17 +357,11 @@ void MainWindow::paintEvent(QPaintEvent *event)
         /// ****************
         ///
 
-
         //chcem poslat spracované dáta
         procesedLidarData lidarData;
         lidarData = preprocesLidarData(paintLaserData);
-        // kresli lidar do frame
-
-        painter.setPen(pero);
-
-
         ui->mywidget->paintLidar(lidarData);
-        //ui->mywidget->update();
+
     }
 
 }
@@ -378,11 +377,11 @@ MainWindow::MainWindow(QWidget *parent) :
     robotX=0;
     robotY=0;
     robotFi=0;
-    ui->lineEdit_5->setText("Gesture controll OFF");
     showCamera=false;
     showLidar=true;
     showSkeleton=false;
     applyDelay=false;
+
     dl=0;
     stopall=1;
     prvyStart=true;
@@ -460,7 +459,9 @@ cv::Mat MainWindow::fusionToCam(cv::Mat camPicture){
          if((scanRightAngle < 27 && scanRightAngle >=0) || (scanRightAngle < 360 && scanRightAngle >333)){
             if(dist <= 250 && dist > 13){
                 double distColorCoef = dist/250;
-                distColor = cv::Scalar(255, distColorCoef*255, 200);
+                double colorCoef = distColorCoef *255;
+                if(colorCoef > 240) colorCoef = 240;
+                distColor = cv::Scalar(255, colorCoef, colorCoef);
 
                 if(xPicture>=0 && yPicture>=0 && xPicture < camPicture.cols && yPicture < camPicture.rows){
                    /* int blue = camPicture.at<cv::Vec3b>(yPicture,xPicture)[0];
@@ -469,7 +470,7 @@ cv::Mat MainWindow::fusionToCam(cv::Mat camPicture){
                     /*cv::Point point(xPicture,yPicture);
                     cv::circle(camPicture, point, 5, distColor, -1);*/
                     cv::floodFill(camPicture, cv::Point(xPicture,yPicture), distColor, 0, cv::Scalar(25, 25, 25,25), cv::Scalar(25, 25, 25,25));
-                    k +=4;
+                    k +=7;
                     //printf("X: %d, Y: %d \n", xPicture, yPicture);
 
                 }
@@ -607,8 +608,11 @@ void MainWindow::robotprocess()
                     init = false;
                 }
                 localisation();
-                 //rightHandClenched();
-                gestureRobotControll();
+                if(!totalStop){
+                    gestureRobotControll();
+                }else{
+                    robotStop();
+                }
             //     memcpy(&sens,buff,sizeof(sens));
 
             std::chrono::steady_clock::time_point timestampf=std::chrono::steady_clock::now();
@@ -756,8 +760,18 @@ void MainWindow::on_pushButton_3_clicked()
 
 void MainWindow::on_pushButton_7_clicked()
 {
-    char tt=0x00;
-    sendRobotCommand(tt);
+    if(totalStop==true)
+    {
+        totalStop=false;
+
+        ui->pushButton_7->setText("STOP");
+    }
+    else
+    {
+        totalStop=true;
+
+        ui->pushButton_7->setText("RESET");
+    }
 
 }
 
